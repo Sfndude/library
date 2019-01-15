@@ -23,30 +23,44 @@
 class Config{
 private:
     std::string key_name="", cfg_name="", obj_name="";
-    void cpfile(void);
-    void cpfile_(void);
-    void replace_(std::string t_old, std::string t_new);
-    void sort(void);
-    int line_total(void);
+    inline void cpfile(void);
+    inline void cpfile_(void);
+    inline void replace_(std::string t_old, std::string t_new);
+    inline void sort(void);
+    inline int line_total(void);
+    inline std::string fget_data(std::string data,int index);
 public:
-    Config(std::string cfg);
-    void key(std::string key);
-    std::string get_key(void);
-    void object(std::string obj);
-    std::string read(std::string obj);
-    int readInt(std::string obj);
-    float readFloat(std::string obj);
-    int write(std::string obj, std::string val);
-    int write(std::string obj, int val);
-    int write(std::string obj, float val);
-    int write(std::string val);
-    int write(int val);
-    int write(float val);
-    int exist(std::string txt);
-    int purge(std::string obj);
+    Config(std::string cfg){
+        cfg_name=cfg;
+        std::ifstream r((cfg_name+".cfg").c_str());
+        if(!r.good()){
+            std::ofstream w((cfg_name+".cfg").c_str(),std::ios::app);
+            w<<"#CONFIG#FILE\n";
+            w.close();
+        }
+        r.close();
+    }
+    inline void key(std::string key);
+    inline std::string get_key(void);
+    inline void object(std::string obj);
+    inline std::string read(std::string obj, int index);
+    inline std::string read(std::string obj);
+    inline int readInt(std::string obj, int index);
+    inline int readInt(std::string obj);
+    inline float readFloat(std::string obj, int index);
+    inline float readFloat(std::string obj);
+    inline int write(std::string obj, std::string val);
+    inline int write(std::string obj, int val);
+    inline int write(std::string obj, float val);
+    inline int write(std::string val);
+    inline int write(int val);
+    inline int write(float val);
+    inline int exist(std::string txt);
+    inline int purge(std::string obj);
+    inline int valueTotal(std::string obj);
 };
 /*--------------PRIVATE---------------*/
-void Config::cpfile(void){
+inline void Config::cpfile(void){
     std::ifstream r((cfg_name+".cfg").c_str());
     std::ofstream w((cfg_name+".cfg.backup").c_str());
     std::string temp;
@@ -55,7 +69,7 @@ void Config::cpfile(void){
     w.close();
     r.close();
 }
-void Config::cpfile_(void){
+inline void Config::cpfile_(void){
     std::ifstream r((cfg_name+".cfg.backup").c_str());
     std::ofstream w((cfg_name+".cfg").c_str());
     std::string temp;
@@ -64,7 +78,7 @@ void Config::cpfile_(void){
     w.close();
     r.close();
 }
-void Config::replace_(std::string t_old, std::string t_new){
+inline void Config::replace_(std::string t_old, std::string t_new){
     cpfile();
     std::ofstream w((cfg_name+".cfg").c_str());
     std::ifstream r((cfg_name+".cfg.backup").c_str());
@@ -80,7 +94,7 @@ void Config::replace_(std::string t_old, std::string t_new){
     cpfile();
     cpfile_();
 }
-void Config::sort(void){
+inline void Config::sort(void){
     std::ifstream r((cfg_name+".cfg").c_str());
     std::ofstream w((cfg_name+".cfg.backup").c_str());
     std::string temp;
@@ -99,7 +113,7 @@ void Config::sort(void){
     cpfile_();
     remove((cfg_name+".cfg.backup").c_str());
 }
-int Config::line_total(void){
+inline int Config::line_total(void){
     std::ifstream r((cfg_name+".cfg").c_str());
     std::string temp;
     int line=0;
@@ -109,8 +123,21 @@ int Config::line_total(void){
             line++;
     return line;
 }
+inline std::string Config::fget_data(std::string data, int index){
+    std::vector<std::string> ret;
+    std::string temp;
+    data+="*";
+    for(int cp=0;cp<data.length();cp++){
+        if(data[cp]==','||cp==(data.length()-1)){
+            ret.push_back(temp);
+            temp="";
+        }else
+            temp+=data[cp];
+    }
+    return ret[index];
+}
 /*--------------PUBLIC----------------*/
-Config::Config(std::string cfg){
+/*inline Config::Config(std::string cfg){
     cfg_name=cfg;
     std::ifstream r((cfg_name+".cfg").c_str());
     if(!r.good()){
@@ -119,11 +146,11 @@ Config::Config(std::string cfg){
         w.close();
     }
     r.close();
-}
-void Config::key(std::string key){key_name=key;}
-std::string Config::get_key(void){return key_name;}
-void Config::object(std::string obj){obj_name=obj;}
-int Config::write(std::string obj, std::string val){
+}*/
+inline void Config::key(std::string key){key_name=key;}
+inline std::string Config::get_key(void){return key_name;}
+inline void Config::object(std::string obj){obj_name=obj;}
+inline int Config::write(std::string obj, std::string val){
     if(key_name.empty())
         return -1;
     std::ifstream r((cfg_name+".cfg").c_str());
@@ -138,19 +165,19 @@ int Config::write(std::string obj, std::string val){
         }
     }
     if(stat!=0){
+        sort();
         replace_(temp,(key_name+"."+obj+"="+val).c_str());
-        sort();
         return 1;
     }else{
-        w<<key_name<<"."<<obj<<"="<<val<<"\n";
         sort();
+        w<<key_name<<"."<<obj<<"="<<val<<"\n";
         return 0;
     }
 
     r.close();
     w.close();
 }
-int Config::write(std::string obj, int val){
+inline int Config::write(std::string obj, int val){
     if(key_name.empty())
         return -1;
     std::ifstream r((cfg_name+".cfg").c_str());
@@ -177,7 +204,7 @@ int Config::write(std::string obj, int val){
     r.close();
     w.close();
 }
-int Config::write(std::string obj, float val){
+inline int Config::write(std::string obj, float val){
     if(key_name.empty())
         return -1;
     std::ifstream r((cfg_name+".cfg").c_str());
@@ -204,7 +231,7 @@ int Config::write(std::string obj, float val){
     r.close();
     w.close();
 }
-int Config::write(std::string val){
+inline int Config::write(std::string val){
     if(key_name.empty() && obj_name.empty())
         return -1;
     std::ifstream r((cfg_name+".cfg").c_str());
@@ -231,7 +258,7 @@ int Config::write(std::string val){
     r.close();
     w.close();
 }
-int Config::write(int val){
+inline int Config::write(int val){
     if(key_name.empty() && obj_name.empty())
         return -1;
     std::ifstream r((cfg_name+".cfg").c_str());
@@ -258,7 +285,7 @@ int Config::write(int val){
     r.close();
     w.close();
 }
-int Config::write(float val){
+inline int Config::write(float val){
     if(key_name.empty() && obj_name.empty())
         return -1;
     std::ifstream r((cfg_name+".cfg").c_str());
@@ -285,7 +312,23 @@ int Config::write(float val){
     r.close();
     w.close();
 }
-std::string Config::read(std::string obj){
+inline std::string Config::read(std::string obj, int index){
+    if(key_name.empty())
+        return "-1";
+    sort();
+    std::ifstream r((cfg_name+".cfg").c_str());
+    std::string temp;
+
+    while(r>>temp)
+        if(temp.find(std::string(key_name+"."+obj+"="))!=std::string::npos)
+            break;
+    if(!(temp.find(key_name)==std::string::npos))
+        return fget_data(temp.replace(temp.begin(),temp.begin()+(key_name.length()+obj.length())+2,""),index);
+    else
+        return "-1";
+    r.close();
+}
+inline std::string Config::read(std::string obj){
     if(key_name.empty())
         return "-1";
     sort();
@@ -302,7 +345,23 @@ std::string Config::read(std::string obj){
         return "-1";
     r.close();
 }
-int Config::readInt(std::string obj){
+inline int Config::readInt(std::string obj, int index){
+    if(key_name.empty())
+        return -1;
+    sort();
+    std::ifstream r((cfg_name+".cfg").c_str());
+    std::string temp;
+
+    while(r>>temp)
+        if(temp.find(std::string(key_name+"."+obj+"="))!=std::string::npos)
+            break;
+    if(!(temp.find(key_name)==std::string::npos))
+        return atoi(fget_data(temp.replace(temp.begin(),temp.begin()+(key_name.length()+obj.length())+2,""),index).c_str());
+    else
+        return -1;
+    r.close();
+}
+inline int Config::readInt(std::string obj){
     if(key_name.empty())
         return -1;
     sort();
@@ -318,7 +377,23 @@ int Config::readInt(std::string obj){
     else
         return -1;
 }
-float Config::readFloat(std::string obj){
+inline float Config::readFloat(std::string obj, int index){
+    if(key_name.empty())
+        return -1;
+    sort();
+    std::ifstream r((cfg_name+".cfg").c_str());
+    std::string temp;
+
+    while(r>>temp)
+        if(temp.find(std::string(key_name+"."+obj+"="))!=std::string::npos)
+            break;
+    if(!(temp.find(key_name)==std::string::npos))
+        return atof(fget_data(temp.replace(temp.begin(),temp.begin()+(key_name.length()+obj.length())+2,""),index).c_str());
+    else
+        return -1;
+    r.close();
+}
+inline float Config::readFloat(std::string obj){
     if(key_name.empty())
         return -1;
     sort();
@@ -340,7 +415,7 @@ float Config::readFloat(std::string obj){
  * return 1 = data exist as object
  * return 2 = data exist as value
  **********************************/
-int Config::exist(std::string txt){
+inline int Config::exist(std::string txt){
     std::ifstream r((cfg_name+".cfg").c_str());
     std::string temp;
     int ret=0;
@@ -361,7 +436,7 @@ int Config::exist(std::string txt){
     r.close();
     return ret;
 }
-int Config::purge(std::string obj){
+inline int Config::purge(std::string obj){
     std::ifstream r((cfg_name+".cfg").c_str());
     std::ofstream w((cfg_name+".cfg").c_str(),std::ios::app);
     std::string temp;
@@ -382,4 +457,25 @@ int Config::purge(std::string obj){
         return 0;
     else
         return -1;
+}
+inline int Config::valueTotal(std::string obj){
+    if(key_name.empty())
+        return -1;
+    sort();
+    std::ifstream r((cfg_name+".cfg").c_str());
+    std::string temp;
+    int total=0;
+
+    while(r>>temp)
+        if(temp.find(std::string(key_name+"."+obj+"="))!=std::string::npos)
+            break;
+    if(!(temp.find(key_name)==std::string::npos))
+        temp=temp.replace(temp.begin(),temp.begin()+(key_name.length()+obj.length())+2,"");
+    for(int cp=0;cp<temp.length();cp++)
+        if(temp[cp]==',')
+            total++;
+    total+=1;
+
+    r.close();
+    return total; 
 }
