@@ -58,6 +58,7 @@ public:
     inline int exist(std::string txt);
     inline int purge(std::string obj);
     inline int valueTotal(std::string obj);
+    inline std::string get_config(void);
 };
 /*--------------PRIVATE---------------*/
 inline void Config::cpfile(void){
@@ -479,3 +480,4 @@ inline int Config::valueTotal(std::string obj){
     r.close();
     return total; 
 }
+inline std::string Config::get_config(void){return cfg_name;}
