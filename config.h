@@ -15,10 +15,11 @@
  * ~deleted object~
  ************************/
 
+//#include <cli.h> // uncomment this library just if in debugging mode
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
 class Config{
 private:
@@ -29,6 +30,9 @@ private:
     inline void sort(void);
     inline int line_total(void);
     inline std::string fget_data(std::string data,int index);
+    inline std::string fget_key_name(std::string data);
+    inline std::string fget_object_name(std::string data);
+    inline std::string strrev(const char* txt);
 public:
     Config(std::string cfg){
         cfg_name=cfg;
@@ -59,6 +63,16 @@ public:
     inline int purge(std::string obj);
     inline int valueTotal(std::string obj);
     inline std::string get_config(void);
+    inline std::string get_list_key(int index);
+    inline std::string get_list_object(int index);
+    //inline int deleteKey(std::string key);
+    //inline int deleteObject(std::string obj);
+    //inline int append(std::string val);
+    //inline int append(int val);
+    //inline int append(float val);
+    //inline int prepend(std::string val);
+    //inline int prepend(int val);
+    //inline int prepend(float val);
 };
 /*--------------PRIVATE---------------*/
 inline void Config::cpfile(void){
@@ -136,6 +150,46 @@ inline std::string Config::fget_data(std::string data, int index){
             temp+=data[cp];
     }
     return ret[index];
+}
+inline std::string Config::fget_key_name(std::string data){
+    std::string temp=data;
+    int start=0;
+    for(int x=0;x<data.length();x++){
+        if(data[x]=='.')
+            break;
+        else
+            start++;
+    }
+    return temp.replace(temp.begin()+start,temp.begin(),"");
+}
+inline std::string Config::fget_object_name(std::string data){
+    std::string temp,filter;
+    int fcount=0;
+    //remove value
+    for(int x=0;x<data.length();x++){
+        if(data[x]=='=') break;
+        else fcount++;
+    }
+    temp=data.replace(data.begin()+fcount,data.begin(),"");
+    //remove key
+    fcount=0;
+    for(int x=0;x<temp.length();x++){
+        if(temp[x]=='.') break;
+        else fcount++;
+    }
+    return filter=temp.replace(temp.begin(),temp.begin()+(fcount+1),"");
+}
+inline std::string Config::strrev(const char txt[1000]){
+    char temp[1000];
+    int len=0,y;
+    while(txt[len]) ++len;
+    y=len-1;
+    for(int x=0;x<len;x++){
+        temp[x]=txt[y];
+        y--;
+    }
+    temp[len]='\0';
+    return std::string(temp);
 }
 /*--------------PUBLIC----------------*/
 /*inline Config::Config(std::string cfg){
@@ -481,3 +535,51 @@ inline int Config::valueTotal(std::string obj){
     return total; 
 }
 inline std::string Config::get_config(void){return cfg_name;}
+inline std::string Config::get_list_key(int index){
+    std::ifstream r((cfg_name+".cfg").c_str());
+    std::string str,cmp;
+    bool check=true;
+    std::vector<std::string> lib,dump;
+    
+    while(r>>str){
+        if(str!="#CONFIG#FILE"){
+            cmp=fget_key_name(str);
+            if(lib.size()<1)
+                lib.push_back(cmp);
+            else{
+                for(int x=0;x<lib.size();x++){
+                    if(lib[x]!=cmp)
+                        check=false;
+                }
+                if(check==false)
+                    lib.push_back(cmp);
+            }
+        }
+    }
+
+    for(int x=0;x<lib.size();x++){
+        cmp=lib[x];
+        if(cmp!=lib[x+1])
+            dump.push_back(cmp);
+    }
+
+    r.close();
+    return dump[index];
+}
+inline std::string Config::get_list_object(int index){
+    if(key_name=="")
+        return "-1";
+    std::ifstream r((cfg_name+".cfg").c_str());
+    std::string str;
+    std::vector<std::string> lib,dump;
+    
+    while(r>>str)
+        if(str.find(key_name+".")!=std::string::npos)
+            lib.push_back(str);
+
+    for(int x=0;x<lib.size();x++)
+        dump.push_back(fget_object_name(lib[x]));
+    
+    r.close();
+    return dump[index];
+}
